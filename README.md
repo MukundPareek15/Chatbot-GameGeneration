@@ -54,17 +54,8 @@ This Unreal Engine 5 plugin integrates a **Slate-based Chat Window** that intera
 
 ### **Project Structure**
 
-/MinesButton
-│── /Public
-│   ├── MinesButton.h             # Plugin Module
-│   ├── SChatWidget.h             # Chat UI (Slate)
-│   ├── MinesweeperAIRequest.h    # AI API Handler
-│   ├── WindowHUD.h               # HUD for UI Management
-│── /Private
-│   ├── MinesButton.cpp           # Plugin Logic
-│   ├── SChatWidget.cpp           # UI Implementation
-│   ├── MinesweeperAIRequest.cpp  # AI API Integration
-│   ├── WindowHUD.cpp             # HUD Management
+<img width="495" height="298" alt="image" src="https://github.com/user-attachments/assets/6cd2dafa-4711-4afd-a7c7-57609d604b48" />
+
 
 
 ### **Key Components**
