@@ -9,7 +9,7 @@ void UMinesweeperAIRequest::SendAIRequest(FString UserQuery)
 	Request->SetURL("https://api.mistral.ai/v1/chat/completions");
 	Request->SetVerb("POST");
 	Request->SetHeader("Content-Type", "application/json");
-	Request->SetHeader("Authorization", "Bearer ArDWhYTtb8xkIDygM27OmeBMncJIjJo8");
+	Request->SetHeader("Authorization", "Bearer xy4B2AuPalvRb4NpSyCUDzd8z8wvXqjJ");
 
 	FString RequestBody = FString::Printf(TEXT(R"({"model": "mistral-small", "messages": [
             {"role": "user", "content": "%s"}
