@@ -5,7 +5,6 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SButton.h"
-#include "HttpModule.h"
 
 void SChatWidget::Construct(const FArguments& InArgs)
 {
@@ -56,55 +55,27 @@ void SChatWidget::OnChatSubmitted(const FText& Text, ETextCommit::Type CommitTyp
 
 void SChatWidget::HandleAIResponse(FString AIResponse)
 {
-	
-	UE_LOG(LogTemp, Log, TEXT("Raw AI Response:\n%s"), *AIResponse);
-
-	TSharedPtr<FJsonObject> JsonObject;
-	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(AIResponse);
-
-	if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+	// MinesweeperAIRequest already parsed the JSON — we receive either plain text or "Error: ..."
+	if (AIResponse.StartsWith(TEXT("Error")))
 	{
-		// Extract message content from AI response
-		TArray<TSharedPtr<FJsonValue>> Choices = JsonObject->GetArrayField("choices");
-		if (Choices.Num() > 0 && Choices[0]->AsObject()->HasField("message"))
-		{
-			TSharedPtr<FJsonObject> MessageObject = Choices[0]->AsObject()->GetObjectField("message");
-
-			if (MessageObject->HasField("content"))
-			{
-				FString ResponseTextStr = MessageObject->GetStringField("content");
-
-				int32 GridStartIndex = ResponseTextStr.Find(TEXT("\n"));
-				if (GridStartIndex != INDEX_NONE)
-				{
-					LastGeneratedGrid = ResponseTextStr.Mid(GridStartIndex).TrimStartAndEnd();
-				}
-				else
-				{
-					LastGeneratedGrid = ResponseTextStr; // Fallback if no newline
-				}
-
-				// Remove extra AI explanations
-				LastGeneratedGrid = LastGeneratedGrid.Replace(TEXT("In this grid, \"X\" represents the bomb."), TEXT(""), ESearchCase::IgnoreCase);
-				LastGeneratedGrid = LastGeneratedGrid.Replace(TEXT("The other cells are empty."), TEXT(""), ESearchCase::IgnoreCase);
-
-				// Set the cleaned text in the UI
-				ResponseText->SetText(FText::FromString(LastGeneratedGrid));
-				PlayButton->SetEnabled(true);
-
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("Invalid AI response format: Missing 'message' or 'content'"));
-			ResponseText->SetText(FText::FromString("Error: Invalid AI response format"));
-		}
+		UE_LOG(LogTemp, Error, TEXT("AI Error: %s"), *AIResponse);
+		ResponseText->SetText(FText::FromString(AIResponse));
+		return;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to parse AI response: %s"), *AIResponse);
-		ResponseText->SetText(FText::FromString("Error: Invalid AI response"));
-	}
+
+	// Skip the first line (AI preamble like "Here is a 5x5 grid:") and use the rest as the grid
+	int32 GridStartIndex = AIResponse.Find(TEXT("\n"));
+	LastGeneratedGrid = (GridStartIndex != INDEX_NONE)
+		? AIResponse.Mid(GridStartIndex).TrimStartAndEnd()
+		: AIResponse;
+
+	// Strip common AI filler lines that aren't part of the grid
+	LastGeneratedGrid = LastGeneratedGrid.Replace(TEXT("In this grid, \"X\" represents the bomb."), TEXT(""), ESearchCase::IgnoreCase);
+	LastGeneratedGrid = LastGeneratedGrid.Replace(TEXT("The other cells are empty."), TEXT(""), ESearchCase::IgnoreCase);
+	LastGeneratedGrid = LastGeneratedGrid.TrimStartAndEnd();
+
+	ResponseText->SetText(FText::FromString(LastGeneratedGrid));
+	PlayButton->SetEnabled(true);
 }
 
 FReply SChatWidget::GenerateMinesweeperBoard()

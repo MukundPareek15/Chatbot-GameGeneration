@@ -1,107 +1,223 @@
-# 🕵️‍♂️ Minesweeper AI Chat Plugin for Unreal Engine 5
+# Minesweeper AI Chat Plugin — Unreal Engine 5
 
-## 📌 Overview
-This Unreal Engine 5 plugin integrates a **Slate-based Chat Window** that interacts with an AI model via **Mistral AI** to generate **Minesweeper grids** based on user input.
+An Unreal Engine 5 Editor plugin that opens a Slate-based chat window. Type a request, an AI model generates a Minesweeper grid, and clicking **Play** renders it as an interactive button grid inside the editor.
 
-### 🎯 Features
-✅ **AI-Generated Minesweeper Grids** – Get Minesweeper grids by simply typing a request  
-✅ **Slate-Only UI** – No UMG, fully built using Unreal's **Slate UI Framework**  
-✅ **Live AI Chat** – The chat refreshes each time you enter a request  
-✅ **Regenerate Functionality** – Just re-enter your query to get a new response  
+Supports **Gemini, OpenAI, and Claude** — bring your own API key.
 
 ---
 
-## 🚀 Installation & Setup
+## Features
 
-### **1️⃣ Prerequisites**
-- Unreal Engine **5.3** or later
-- C++ Project (Blueprint-only projects **are not supported**)
-- **Mistral AI API Key** (replace in `MinesweeperAIRequest.cpp`)
-
-### **2️⃣ Adding the Plugin**
-1. Place the `MinesButton` plugin in your project's `Plugins/` folder.
-2. Open Unreal Engine and enable the **MinesButton** plugin from **Edit → Plugins**.
-3. Restart the editor after enabling the plugin.
-
-### **3️⃣ Building the Plugin**
-- **If using Visual Studio:**  
-  - Open the project in **Visual Studio 2022**  
-  - Right-click on **JoinTask.uproject** → Select **Regenerate Visual Studio Project Files**  
-  - Build the project (`Ctrl + Shift + B`)  
-- **Using Unreal Engine:**  
-  - Open **JoinTask.uproject**  
-  - Click **Compile** in the editor
+- AI-generated Minesweeper grids from natural-language prompts
+- Works with any of three AI providers (Gemini, OpenAI, Claude)
+- API key stored in a local gitignored file — never touches source control
+- Slate-only UI (no UMG dependency)
+- Rate-limit and API error messages surfaced directly in the chat window
 
 ---
 
-## 🛠️ How to Use
+## Prerequisites
 
-1. **Open the Chat Window:**  
-   - Click the **Minesweeper AI** button in **Unreal Editor's toolbar**  
-   - The chat window appears  
+| Requirement | Version / Notes |
+|---|---|
+| Unreal Engine | 5.4 or 5.5 (5.3 is deprecated as of UE 5.6) |
+| C++ toolchain | Visual Studio 2022 with **Desktop development with C++** and **Game development with C++** workloads |
+| IDE | Visual Studio 2022 **or** JetBrains Rider 2024+ |
+| AI API key | One of: Google AI Studio (Gemini), OpenAI Platform, or Anthropic Console |
 
-2. **Ask AI for a Grid:**  
-   - Type a request like `"Generate a 3x3 Minesweeper grid with 1 bomb"`  
-   - Press **Enter**  
-
-3. **View & Play the Grid:**  
-   - The AI-generated **Minesweeper grid** appears  
-   - Click **Play** to generate an interactive grid  
+> **Rider users:** Go to **Settings → Build, Execution, Deployment → Toolset and Build** and set MSBuild to Visual Studio's binary (`...\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe`), not Rider's bundled one. Without this, the C++ props import will fail.
 
 ---
 
-## 🛠️ Developer Guide
+## First-Time Setup
 
-### **Project Structure**
+### Step 1 — Clone the repository
 
-<img width="495" height="298" alt="image" src="https://github.com/user-attachments/assets/6cd2dafa-4711-4afd-a7c7-57609d604b48" />
+```bash
+git clone https://github.com/<your-username>/Chatbot-GameGeneration.git
+cd Chatbot-GameGeneration
+```
 
+### Step 2 — Configure your AI provider
 
+Copy the example secrets file and fill it in:
 
-### **Key Components**
-📌 **Slate UI (`SChatWidget`)**  
-- Custom chat interface built **entirely in Slate**  
-- Handles **input, AI responses, and dynamic UI updates**  
+```bash
+cp Config/Secrets.ini.example Config/Secrets.ini
+```
 
-📌 **AI Requests (`MinesweeperAIRequest`)**  
-- Uses **HTTP requests** to communicate with **Mistral AI**  
-- Sends **user input** and receives a **Minesweeper grid**  
+Open `Config/Secrets.ini` and set your provider and key:
 
-📌 **HUD (`WindowHUD`)**  
-- Manages adding the **chat window** to the game screen  
-- Ensures proper cleanup and prevents duplicate widgets  
+```ini
+[AI]
+Provider=gemini        ; gemini | openai | claude
+APIKey=YOUR_KEY_HERE
+Model=                 ; leave blank to use the default for your provider
+```
+
+`Secrets.ini` is listed in `.gitignore` and will never be committed.
+
+**Where to get an API key:**
+
+| Provider | Free tier | Key URL |
+|---|---|---|
+| Gemini | Yes (daily quota) | https://aistudio.google.com/app/apikey |
+| OpenAI | No (pay-as-you-go) | https://platform.openai.com/api-keys |
+| Claude | Limited free via Console | https://console.anthropic.com/settings/keys |
+
+### Step 3 — Generate project files
+
+**Right-click** `JoinTask.uproject` in Explorer → **Generate Rider Project Files** (or **Generate Visual Studio project files**).
+
+Or from a terminal:
+
+```bash
+"C:\Program Files\Epic Games\UE_5.5\Engine\Build\BatchFiles\GenerateProjectFiles.bat" \
+  -project="D:\Dev\Unreal Games\Chatbot-GameGeneration\JoinTask.uproject" -game
+```
+
+### Step 4 — Build
+
+**In Rider:** Open `JoinTask.sln` → Build → Build Solution (`Ctrl+F9`)
+
+**In Visual Studio:** Open `JoinTask.sln` → Build → Build Solution (`Ctrl+Shift+B`)
+
+**In the Unreal Editor:** Open `JoinTask.uproject` → click **Compile** in the toolbar.
+
+### Step 5 — Open and use
+
+1. Open `JoinTask.uproject` in Unreal Engine 5.
+2. Look for the **MinesButton** button in the editor toolbar.
+3. Click it — a chat window opens.
+4. Type a request, for example:
+
+   ```
+   Generate a 5x5 Minesweeper grid with 3 bombs
+   ```
+
+5. Press **Enter**. The AI response appears.
+6. Click **Play** to render the interactive grid.
 
 ---
 
-## ❓ Troubleshooting
+## File Structure
 
-### **Common Errors**
-❌ **Plugin doesn't appear in the editor**  
-✔️ Make sure you **enabled the plugin** under **Edit → Plugins**  
+```
+Chatbot-GameGeneration/
+│
+├── Config/
+│   ├── Secrets.ini           # Your API key — gitignored, never committed
+│   ├── Secrets.ini.example   # Template to copy from
+│   └── Default*.ini          # Standard UE config files
+│
+├── Source/
+│   ├── JoinTask.Target.cs        # Game target (sets IncludeOrderVersion = Latest)
+│   ├── JoinTaskEditor.Target.cs  # Editor target
+│   └── JoinTask/
+│       ├── JoinTask.Build.cs
+│       ├── JoinTask.h / .cpp
+│
+└── Plugins/
+    └── MinesButton/
+        ├── MinesButton.uplugin
+        ├── Resources/
+        │   └── Icon128.png
+        └── Source/MinesButton/
+            ├── Public/
+            │   ├── MinesweeperAIRequest.h  # HTTP + JSON abstraction per provider
+            │   ├── SChatWidget.h           # Slate widget declaration
+            │   ├── WindowHUD.h
+            │   ├── MinesButton.h
+            │   ├── MinesButtonCommands.h
+            │   └── MinesButtonStyle.h
+            └── Private/
+                ├── MinesweeperAIRequest.cpp  # Builds requests & parses responses
+                │                             # for Gemini, OpenAI, and Claude
+                ├── SChatWidget.cpp           # Chat UI, grid rendering
+                ├── WindowHUD.cpp
+                ├── MinesButton.cpp           # Plugin entry point, toolbar button
+                ├── MinesButtonCommands.cpp
+                └── MinesButtonStyle.cpp
+```
 
-❌ **API key error**  
-✔️ Replace the API key in **MinesweeperAIRequest.cpp**  
+### Key components
 
-❌ **AI response is incorrect**  
-✔️ Try a more **specific prompt** like `"Generate a 5x5 Minesweeper grid with 3 bombs"`  
+**`MinesweeperAIRequest`** (`Public/` + `Private/`)
+Handles all network and JSON logic. Reads `Config/Secrets.ini` to determine which provider to use, builds the correct request body and headers, sends the HTTP request, parses the provider-specific response JSON, and fires a delegate with plain text (or an `"Error: ..."` string on failure). `SChatWidget` never touches JSON.
+
+**`SChatWidget`** (`Public/` + `Private/`)
+The Slate chat widget. Owns a text input, a response label, a Play button, and a dynamic grid box. On receiving a plain-text AI response it strips preamble lines, stores the grid string, and renders it as `SButton` cells when Play is clicked.
+
+**`MinesButton`** (`MinesButton.cpp`)
+Plugin module entry point. Registers the toolbar button and the `FMinesButtonCommands` action that opens the `WindowHUD`-backed chat window.
 
 ---
 
-## 📜 License
-This project is for educational purposes. **Not for commercial use.**
+## AI Provider Reference
+
+Default models are applied automatically when `Model=` is left blank in `Secrets.ini`.
+
+| Provider | Default model | Notes |
+|---|---|---|
+| `gemini` | `gemini-2.0-flash` | Free tier available; daily quota resets at midnight Pacific |
+| `openai` | `gpt-4o-mini` | Pay-as-you-go; cheapest option for OpenAI |
+| `claude` | `claude-haiku-4-5-20251001` | Fastest Claude model; limited free tier via Console |
+
+Other models you can set in `Secrets.ini`:
+
+```ini
+# Gemini
+Model=gemini-1.5-flash-8b   # separate free-tier quota from 2.0-flash
+
+# OpenAI
+Model=gpt-4o
+
+# Claude
+Model=claude-sonnet-4-6
+```
 
 ---
 
-## 📩 Contributions
-- Fork the repo  
-- Submit pull requests  
-- Open issues for bugs/features  
+## Troubleshooting
+
+**Plugin button does not appear in the toolbar**
+Enable the plugin under **Edit → Plugins → Other → MinesButton**, then restart the editor.
+
+**"Error: Add your API key to Config/Secrets.ini"**
+`Secrets.ini` is missing or `APIKey=` is still set to the placeholder. Copy `Secrets.ini.example` and fill in your key.
+
+**"Error 429: You exceeded your current quota"**
+The free-tier daily limit is exhausted. Either wait for the midnight reset, switch to a different model (e.g. `gemini-1.5-flash-8b` has a separate quota), or enable billing on your API account.
+
+**"Error: Set Provider= in Config/Secrets.ini"**
+The `Provider=` line is missing or blank. Set it to `gemini`, `openai`, or `claude`.
+
+**Build error: `Microsoft.Cpp.Default.props was not found`**
+Rider's bundled MSBuild doesn't include VC++ toolchain files. Fix: **Settings → Build, Execution, Deployment → Toolset and Build** → point MSBuild to the Visual Studio 2022 installation, not Rider's bundled version. See the Prerequisites section above.
+
+**Build warning: `EngineIncludeOrderVersion.Unreal5_3 is obsolete`**
+Already fixed in this repo — both Target.cs files use `EngineIncludeOrderVersion.Latest`.
+
+**AI response looks garbled / grid doesn't render**
+Try a more explicit prompt: `Generate a 5x5 Minesweeper grid with exactly 4 bombs. Use X for bombs and . for empty cells. One cell per space, one row per line.`
 
 ---
 
-## 🤝 Acknowledgments
-- **Epic Games** – Unreal Engine  
-- **Mistral AI** – AI Model  
+## Contributing
+
+Pull requests are welcome. For larger changes, open an issue first to discuss the approach.
 
 ---
 
+## License
+
+Educational use. See `LICENSE.txt` for details.
+
+---
+
+## Acknowledgments
+
+- Epic Games — Unreal Engine 5
+- Google — Gemini API
+- OpenAI — GPT models
+- Anthropic — Claude models
